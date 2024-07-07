@@ -67,7 +67,7 @@ def check_story():
 def update_tasks():
     for widget in scrollable_frame.winfo_children():
         widget.destroy()
-    
+
     num_tasks = len(tasks[person['location']])
     num_columns = 3  # Define number of columns
     num_rows = (num_tasks + num_columns - 1) // num_columns  # Calculate number of rows needed
@@ -76,8 +76,11 @@ def update_tasks():
         btn = tk.Button(scrollable_frame, text=task, command=lambda t=task: handle_task(t))
         btn.grid(row=idx // num_columns, column=idx % num_columns, sticky="nsew")
 
+    leave_btn = tk.Button(scrollable_frame, text="離開房間", command=leave_room)
+    leave_btn.grid(row=num_rows, column=0, columnspan=num_columns, sticky="nsew")
+
     # Make the buttons fill the frame
-    for row in range(num_rows):
+    for row in range(num_rows + 1):
         scrollable_frame.grid_rowconfigure(row, weight=1)
     for col in range(num_columns):
         scrollable_frame.grid_columnconfigure(col, weight=1)
@@ -104,6 +107,12 @@ def update_rooms():
 def select_room(room):
     person['location'] = room
     update_tasks()
+    show_status()
+
+def leave_room():
+    person['location'] = ''
+    update_rooms()
+    show_status()
 
 # Function to start the simulation
 def start_simulation():
