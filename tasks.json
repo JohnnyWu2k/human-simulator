@@ -2,12 +2,26 @@
     "bedroom": {
         "起床": {"story": "你醒來了，開始新的一天。", "energy": 5, "hunger": 5},
         "刷牙": {"story": "你刷了牙，口氣清新。", "energy": 0, "hunger": 0},
-        "洗臉": {"story": "你洗了臉，感覺精神抖擻。", "energy": 0, "hunger": 0}
+        "洗臉": {"story": "你洗了臉，感覺精神抖擻。", "energy": 0, "hunger": 0},
+        "穿衣服": {"story": "你穿好了衣服，準備開始一天的活動。", "energy": 5, "hunger": 0},
+        "整理床鋪": {"story": "你整理了床鋪，房間看起來更整潔了。", "energy": 5, "hunger": 0},
+        "做瑜伽": {"story": "你做了一些瑜伽，感覺身心舒暢。", "energy": 5, "hunger": 0},
+        "冥想": {"story": "你冥想了片刻，感覺平靜。", "energy": 5, "hunger": 0},
+        "換床單": {"story": "你換了床單，床鋪變得乾淨舒適。", "energy": 5, "hunger": 0},
+        "打掃房間": {"story": "你打掃了房間，整個房間焕然一新。", "energy": 5, "hunger": 0},
+        "玩手機": {"story": "你玩了會手機，放鬆了一下。", "energy": 5, "hunger": 0}
     },
     "kitchen": {
         "吃早餐": {"story": "你吃了早餐，補充了能量。", "energy": 20, "hunger": -20},
         "喝咖啡": {"story": "你喝了一杯咖啡，提神醒腦。", "energy": 10, "hunger": -5},
-        "煮飯": {"story": "你煮了一頓美味的飯菜。", "energy": 15, "hunger": -10}
+        "吃午餐": {"story": "你吃了午餐，感覺飽滿。", "energy": 20, "hunger": -20},
+        "吃晚餐": {"story": "你吃了晚餐，感覺滿足。", "energy": 20, "hunger": -20},
+        "準備食材": {"story": "你準備好了食材，開始做飯。", "energy": 10, "hunger": -5},
+        "煮飯": {"story": "你煮了一頓美味的飯菜。", "energy": 15, "hunger": -10},
+        "洗碗": {"story": "你洗了碗，廚房變得乾淨了。", "energy": 5, "hunger": 0},
+        "喝茶": {"story": "你喝了一杯茶，感覺很放鬆。", "energy": 5, "hunger": -5},
+        "烤麵包": {"story": "你烤了一片香噴噴的麵包。", "energy": 5, "hunger": -5},
+        "喝牛奶": {"story": "你喝了一杯牛奶，補充了營養。", "energy": 5, "hunger": -5}
     },
     "park": {
         "跑步": {"story": "你跑了一段路，感覺身體很健康。", "energy": -15, "hunger": 10},
@@ -17,6 +31,13 @@
     "office": {
         "工作": {"story": "你開始了一天的工作。", "energy": -10, "hunger": 5},
         "開會": {"story": "你參加了一個會議，討論了很多重要的事情。", "energy": -10, "hunger": 5},
-        "與同事聊天": {"story": "你和同事聊了聊，放鬆了一下。", "energy": 5, "hunger": 0}
+        "打電話": {"story": "你打了一個電話，解決了一些工作上的問題。", "energy": -5, "hunger": 5},
+        "發郵件": {"story": "你發了幾封郵件，處理了日常的工作。", "energy": -5, "hunger": 5},
+        "寫報告": {"story": "你寫了一份報告，總結了最近的工作成果。", "energy": -10, "hunger": 5},
+        "讀文件": {"story": "你讀了一些文件，獲取了重要的信息。", "energy": -5, "hunger": 5},
+        "喝水": {"story": "你喝了一杯水，補充了水分。", "energy": 5, "hunger": -5},
+        "做筆記": {"story": "你做了一些筆記，記錄了重要的信息。", "energy": 5, "hunger": 0},
+        "整理資料": {"story": "你整理了資料，工作變得更有條理。", "energy": 5, "hunger": 0},
+        "與同事聊天": {"story": "你和同事聊了聊，放鬆了一下。", "energy": 10, "hunger": 0}
     }
 }

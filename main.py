@@ -22,6 +22,14 @@ combo_stories = {
     ("跑步", "洗臉", "喝咖啡"): "你保持了健康的生活方式。",
 }
 
+# Basic button style for a cooler look
+BUTTON_STYLE = {
+    "bg": "#444",
+    "fg": "white",
+    "activebackground": "#666",
+    "font": ("Arial", 12),
+}
+
 
 # Function to load tasks and stories from a file
 def load_tasks_from_file(filename):
@@ -67,13 +75,25 @@ def handle_task(task):
         story = action_stories.get(task, "你完成了這個動作。")
         energy_change = action_energy.get(task, 0)
         hunger_change = action_hunger.get(task, 0)
+
+        intensity = simpledialog.askinteger(
+            "強度",
+            "請輸入強度(1-3)",
+            minvalue=1,
+            maxvalue=3,
+        )
+        if intensity is None:
+            intensity = 1
+        energy_change *= intensity
+        hunger_change *= intensity
+
         person['energy'] += energy_change
         person['hunger'] += hunger_change
         messagebox.showinfo(
             "結果",
             (
-                f"你選擇了{task}: {story}\n能量變化: {energy_change}, "
-                f"飢餓變化: {hunger_change}"
+                f"你選擇了{task}: {story}\n強度: {intensity}\n"
+                f"能量變化: {energy_change}, 飢餓變化: {hunger_change}"
             ),
         )
 
@@ -111,6 +131,7 @@ def update_tasks():
             scrollable_frame,
             text=task,
             command=lambda t=task: handle_task(t),
+            **BUTTON_STYLE,
         )
         btn.grid(
             row=idx // num_columns,
@@ -122,6 +143,7 @@ def update_tasks():
         scrollable_frame,
         text="離開房間",
         command=leave_room,
+        **BUTTON_STYLE,
     )
     leave_btn.grid(
         row=num_rows,
@@ -152,6 +174,7 @@ def update_rooms():
             scrollable_frame,
             text=room,
             command=lambda r=room: select_room(r),
+            **BUTTON_STYLE,
         )
         btn.grid(
             row=idx // num_columns,
@@ -203,13 +226,20 @@ def search_tasks(event=None):
             result = tk.Toplevel(root)
             result.title("搜索結果")
             result.geometry("300x200")
-            result_label = tk.Label(result, text="選擇一個動作:")
+            result.configure(bg="#1e1e1e")
+            result_label = tk.Label(
+                result,
+                text="選擇一個動作:",
+                bg="#1e1e1e",
+                fg="white",
+            )
             result_label.pack(pady=10)
             for match in close_matches:
                 btn = tk.Button(
                     result,
                     text=match,
                     command=lambda m=match: [handle_task(m), result.destroy()],
+                    **BUTTON_STYLE,
                 )
                 btn.pack(fill=tk.X, padx=10, pady=2)
         else:
@@ -220,28 +250,37 @@ def search_tasks(event=None):
 root = tk.Tk()
 root.title("人模擬器")
 root.geometry("800x600")  # Set window size
+root.configure(bg="#1e1e1e")
 
 welcome_label = tk.Label(
     root,
     text="歡迎來到人模擬器!",
     font=("Arial", 18),
+    bg="#1e1e1e",
+    fg="white",
 )
 welcome_label.pack(pady=10)
 
-status_label = tk.Label(root, text="", font=("Arial", 14))
+status_label = tk.Label(
+    root,
+    text="",
+    font=("Arial", 14),
+    bg="#1e1e1e",
+    fg="white",
+)
 status_label.pack(pady=10)
 
-task_buttons_frame = tk.Frame(root)
+task_buttons_frame = tk.Frame(root, bg="#1e1e1e")
 task_buttons_frame.pack(expand=True, fill=tk.BOTH, padx=10, pady=10)
 
 # Add a scrollbar for the task buttons frame
-canvas = tk.Canvas(task_buttons_frame)
+canvas = tk.Canvas(task_buttons_frame, bg="#1e1e1e", highlightthickness=0)
 scrollbar = tk.Scrollbar(
     task_buttons_frame,
     orient="vertical",
     command=canvas.yview,
 )
-scrollable_frame = tk.Frame(canvas)
+scrollable_frame = tk.Frame(canvas, bg="#1e1e1e")
 
 scrollable_frame.bind(
     "<Configure>",
@@ -256,13 +295,18 @@ canvas.configure(yscrollcommand=scrollbar.set)
 canvas.pack(side="left", fill="both", expand=True)
 scrollbar.pack(side="right", fill="y")
 
-search_frame = tk.Frame(root)
+search_frame = tk.Frame(root, bg="#1e1e1e")
 search_frame.pack(pady=10)
-search_label = tk.Label(search_frame, text="搜索任務:")
+search_label = tk.Label(search_frame, text="搜索任務:", bg="#1e1e1e", fg="white")
 search_label.pack(side=tk.LEFT)
 search_entry = tk.Entry(search_frame)
 search_entry.pack(side=tk.LEFT, padx=5)
-search_button = tk.Button(search_frame, text="搜索", command=search_tasks)
+search_button = tk.Button(
+    search_frame,
+    text="搜索",
+    command=search_tasks,
+    **BUTTON_STYLE,
+)
 search_button.pack(side=tk.LEFT)
 search_entry.bind("<Return>", search_tasks)
 
