@@ -41,13 +41,16 @@ def load_tasks_from_file(filename):
             action_energy[action] = info.get('energy', 0)
             action_hunger[action] = info.get('hunger', 0)
 
+
 # Load tasks from tasks.json
 load_tasks_from_file('tasks.json')
+
 
 # Function to display current status
 def show_status():
     status_text = (
-        f"目前狀態: 名字: {person['name']}, 能量: {person['energy']}, 飢餓: {person['hunger']}, 位置: {person['location']}"
+        f"目前狀態: 名字: {person['name']}, 能量: {person['energy']}, "
+        f"飢餓: {person['hunger']}, 位置: {person['location']}"
     )
     status_label.config(text=status_text)
 
@@ -56,7 +59,9 @@ def show_status():
     if person['hunger'] > 80:
         messagebox.showinfo("提醒", "你非常餓，該去吃點東西了。")
 
+
 # Function to handle tasks
+
 def handle_task(task):
     if task in tasks[person['location']]:
         story = action_stories.get(task, "你完成了這個動作。")
@@ -66,17 +71,21 @@ def handle_task(task):
         person['hunger'] += hunger_change
         messagebox.showinfo(
             "結果",
-            f"你選擇了{task}: {story}\n能量變化: {energy_change}, 飢餓變化: {hunger_change}",
+            (
+                f"你選擇了{task}: {story}\n能量變化: {energy_change}, "
+                f"飢餓變化: {hunger_change}"
+            ),
         )
-        
+
         person['tasks'].append(task)
         check_story()
 
     else:
         messagebox.showinfo("無效動作", "這個動作在當前位置不可用。")
-    
+
     update_tasks()
     show_status()
+
 
 # Function to check if a specific story is triggered
 def check_story():
@@ -94,14 +103,32 @@ def update_tasks():
 
     num_tasks = len(tasks[person['location']])
     num_columns = 3  # Define number of columns
-    num_rows = (num_tasks + num_columns - 1) // num_columns  # Calculate number of rows needed
+    num_rows = (num_tasks + num_columns - 1) // num_columns
+    # Calculate number of rows needed
 
     for idx, task in enumerate(tasks[person['location']]):
-        btn = tk.Button(scrollable_frame, text=task, command=lambda t=task: handle_task(t))
-        btn.grid(row=idx // num_columns, column=idx % num_columns, sticky="nsew")
+        btn = tk.Button(
+            scrollable_frame,
+            text=task,
+            command=lambda t=task: handle_task(t),
+        )
+        btn.grid(
+            row=idx // num_columns,
+            column=idx % num_columns,
+            sticky="nsew",
+        )
 
-    leave_btn = tk.Button(scrollable_frame, text="離開房間", command=leave_room)
-    leave_btn.grid(row=num_rows, column=0, columnspan=num_columns, sticky="nsew")
+    leave_btn = tk.Button(
+        scrollable_frame,
+        text="離開房間",
+        command=leave_room,
+    )
+    leave_btn.grid(
+        row=num_rows,
+        column=0,
+        columnspan=num_columns,
+        sticky="nsew",
+    )
 
     # Make the buttons fill the frame
     for row in range(num_rows + 1):
@@ -114,14 +141,23 @@ def update_tasks():
 def update_rooms():
     for widget in scrollable_frame.winfo_children():
         widget.destroy()
-    
+
     num_rooms = len(tasks.keys())
     num_columns = 3  # Define number of columns
-    num_rows = (num_rooms + num_columns - 1) // num_columns  # Calculate number of rows needed
+    num_rows = (num_rooms + num_columns - 1) // num_columns
+    # Calculate number of rows needed
 
     for idx, room in enumerate(tasks.keys()):
-        btn = tk.Button(scrollable_frame, text=room, command=lambda r=room: select_room(r))
-        btn.grid(row=idx // num_columns, column=idx % num_columns, sticky="nsew")
+        btn = tk.Button(
+            scrollable_frame,
+            text=room,
+            command=lambda r=room: select_room(r),
+        )
+        btn.grid(
+            row=idx // num_columns,
+            column=idx % num_columns,
+            sticky="nsew",
+        )
 
     # Make the buttons fill the frame
     for row in range(num_rows):
@@ -157,7 +193,12 @@ def start_simulation():
 def search_tasks(event=None):
     query = search_entry.get()
     if query:
-        close_matches = get_close_matches(query, [task for loc_tasks in tasks.values() for task in loc_tasks], n=5, cutoff=0.1)
+        close_matches = get_close_matches(
+            query,
+            [task for loc_tasks in tasks.values() for task in loc_tasks],
+            n=5,
+            cutoff=0.1,
+        )
         if close_matches:
             result = tk.Toplevel(root)
             result.title("搜索結果")
@@ -165,17 +206,26 @@ def search_tasks(event=None):
             result_label = tk.Label(result, text="選擇一個動作:")
             result_label.pack(pady=10)
             for match in close_matches:
-                btn = tk.Button(result, text=match, command=lambda m=match: [handle_task(m), result.destroy()])
+                btn = tk.Button(
+                    result,
+                    text=match,
+                    command=lambda m=match: [handle_task(m), result.destroy()],
+                )
                 btn.pack(fill=tk.X, padx=10, pady=2)
         else:
             messagebox.showinfo("搜索結果", "未找到相近的選項。")
+
 
 # Initialize the main window
 root = tk.Tk()
 root.title("人模擬器")
 root.geometry("800x600")  # Set window size
 
-welcome_label = tk.Label(root, text="歡迎來到人模擬器!", font=("Arial", 18))
+welcome_label = tk.Label(
+    root,
+    text="歡迎來到人模擬器!",
+    font=("Arial", 18),
+)
 welcome_label.pack(pady=10)
 
 status_label = tk.Label(root, text="", font=("Arial", 14))
@@ -186,7 +236,11 @@ task_buttons_frame.pack(expand=True, fill=tk.BOTH, padx=10, pady=10)
 
 # Add a scrollbar for the task buttons frame
 canvas = tk.Canvas(task_buttons_frame)
-scrollbar = tk.Scrollbar(task_buttons_frame, orient="vertical", command=canvas.yview)
+scrollbar = tk.Scrollbar(
+    task_buttons_frame,
+    orient="vertical",
+    command=canvas.yview,
+)
 scrollable_frame = tk.Frame(canvas)
 
 scrollable_frame.bind(
