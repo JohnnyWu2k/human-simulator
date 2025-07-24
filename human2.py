@@ -1,3 +1,4 @@
+import json
 import tkinter as tk
 from tkinter import simpledialog, messagebox
 from difflib import get_close_matches
@@ -15,39 +16,58 @@ person = {
 tasks = {}
 action_stories = {}
 action_energy = {}
+action_hunger = {}
+combo_stories = {
+    ("起床", "刷牙", "吃早餐"): "你開始了一個充滿活力的一天。",
+    ("跑步", "洗臉", "喝咖啡"): "你保持了健康的生活方式。",
+}
+
 
 # Function to load tasks and stories from a file
 def load_tasks_from_file(filename):
-    global tasks, action_stories, action_energy
+    global tasks, action_stories, action_energy, action_hunger
     tasks = {}
     action_stories = {}
     action_energy = {}
+    action_hunger = {}
     with open(filename, 'r', encoding='utf-8') as file:
-        for line in file:
-            location, actions = line.strip().split(':', 1)
-            task_list = []
-            for action_story in actions.split(','):
-                action, story, energy = action_story.strip().split(':', 2)
-                task_list.append(action.strip())
-                action_stories[action.strip()] = story.strip()
-                action_energy[action.strip()] = int(energy.strip())
-            tasks[location.strip()] = task_list
+        data = json.load(file)
 
-# Load tasks from tasks.txt
-load_tasks_from_file('tasks.txt')
+    for location, actions in data.items():
+        tasks[location] = []
+        for action, info in actions.items():
+            tasks[location].append(action)
+            action_stories[action] = info.get('story', '')
+            action_energy[action] = info.get('energy', 0)
+            action_hunger[action] = info.get('hunger', 0)
+
+# Load tasks from tasks.json
+load_tasks_from_file('tasks.json')
 
 # Function to display current status
 def show_status():
-    status_text = f"目前狀態: 名字: {person['name']}, 能量: {person['energy']}, 飢餓: {person['hunger']}, 位置: {person['location']}"
+    status_text = (
+        f"目前狀態: 名字: {person['name']}, 能量: {person['energy']}, 飢餓: {person['hunger']}, 位置: {person['location']}"
+    )
     status_label.config(text=status_text)
+
+    if person['energy'] < 20:
+        messagebox.showinfo("提醒", "你感到疲倦，需要休息。")
+    if person['hunger'] > 80:
+        messagebox.showinfo("提醒", "你非常餓，該去吃點東西了。")
 
 # Function to handle tasks
 def handle_task(task):
     if task in tasks[person['location']]:
         story = action_stories.get(task, "你完成了這個動作。")
         energy_change = action_energy.get(task, 0)
+        hunger_change = action_hunger.get(task, 0)
         person['energy'] += energy_change
-        messagebox.showinfo("結果", f"你選擇了{task}: {story}\n能量變化: {energy_change}")
+        person['hunger'] += hunger_change
+        messagebox.showinfo(
+            "結果",
+            f"你選擇了{task}: {story}\n能量變化: {energy_change}, 飢餓變化: {hunger_change}",
+        )
         
         person['tasks'].append(task)
         check_story()
@@ -60,8 +80,12 @@ def handle_task(task):
 
 # Function to check if a specific story is triggered
 def check_story():
-    # Add story checking logic here if needed
-    pass
+    for combo, story in combo_stories.items():
+        if all(action in person['tasks'] for action in combo):
+            messagebox.showinfo("故事情節", story)
+            person['tasks'].clear()
+            break
+
 
 # Function to update the task buttons based on the current location
 def update_tasks():
@@ -85,6 +109,7 @@ def update_tasks():
     for col in range(num_columns):
         scrollable_frame.grid_columnconfigure(col, weight=1)
 
+
 # Function to update room buttons based on tasks
 def update_rooms():
     for widget in scrollable_frame.winfo_children():
@@ -104,15 +129,18 @@ def update_rooms():
     for col in range(num_columns):
         scrollable_frame.grid_columnconfigure(col, weight=1)
 
+
 def select_room(room):
     person['location'] = room
     update_tasks()
     show_status()
 
+
 def leave_room():
     person['location'] = ''
     update_rooms()
     show_status()
+
 
 # Function to start the simulation
 def start_simulation():
@@ -123,6 +151,7 @@ def start_simulation():
         update_rooms()
     else:
         root.destroy()
+
 
 # Function to search for tasks
 def search_tasks(event=None):

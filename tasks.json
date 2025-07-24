@@ -1,0 +1,22 @@
+{
+    "bedroom": {
+        "起床": {"story": "你醒來了，開始新的一天。", "energy": 5, "hunger": 5},
+        "刷牙": {"story": "你刷了牙，口氣清新。", "energy": 0, "hunger": 0},
+        "洗臉": {"story": "你洗了臉，感覺精神抖擻。", "energy": 0, "hunger": 0}
+    },
+    "kitchen": {
+        "吃早餐": {"story": "你吃了早餐，補充了能量。", "energy": 20, "hunger": -20},
+        "喝咖啡": {"story": "你喝了一杯咖啡，提神醒腦。", "energy": 10, "hunger": -5},
+        "煮飯": {"story": "你煮了一頓美味的飯菜。", "energy": 15, "hunger": -10}
+    },
+    "park": {
+        "跑步": {"story": "你跑了一段路，感覺身體很健康。", "energy": -15, "hunger": 10},
+        "散步": {"story": "你散了一會步，感覺很放鬆。", "energy": -5, "hunger": 5},
+        "遛狗": {"story": "你遛了狗，狗狗也很開心。", "energy": -10, "hunger": 5}
+    },
+    "office": {
+        "工作": {"story": "你開始了一天的工作。", "energy": -10, "hunger": 5},
+        "開會": {"story": "你參加了一個會議，討論了很多重要的事情。", "energy": -10, "hunger": 5},
+        "與同事聊天": {"story": "你和同事聊了聊，放鬆了一下。", "energy": 5, "hunger": 0}
+    }
+}
