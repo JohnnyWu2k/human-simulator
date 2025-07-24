@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import simpledialog, messagebox
 from difflib import get_close_matches
+import random
+from events import random_events
 
 # Initial person settings
 person = {
@@ -54,14 +56,24 @@ def handle_task(task):
 
     else:
         messagebox.showinfo("無效動作", "這個動作在當前位置不可用。")
-    
+
     update_tasks()
     show_status()
+    trigger_random_event()
 
 # Function to check if a specific story is triggered
 def check_story():
     # Add story checking logic here if needed
     pass
+
+# Function to trigger random events
+def trigger_random_event():
+    if random.random() < 0.2:  # 20% chance
+        event = random.choice(random_events)
+        person['energy'] += event['energy']
+        person['hunger'] += event['hunger']
+        messagebox.showinfo("隨機事件", event['description'])
+        show_status()
 
 # Function to update the task buttons based on the current location
 def update_tasks():
