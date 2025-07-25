@@ -31,6 +31,39 @@ combo_stories = {
     ("跑步", "洗臉", "喝咖啡"): "你保持了健康的生活方式。",
 }
 
+# Drag-and-drop support
+drag_data = {"widget": None, "x": 0, "y": 0}
+
+
+def drag_start(event):
+    widget = event.widget
+    drag_data["widget"] = widget
+    drag_data["x"] = event.x
+    drag_data["y"] = event.y
+    widget.orig_row = widget.grid_info().get("row", 0)
+    widget.orig_col = widget.grid_info().get("column", 0)
+    widget.lift()
+    widget.place(in_=scrollable_frame, x=widget.winfo_x(), y=widget.winfo_y())
+
+
+def drag_motion(event):
+    widget = drag_data.get("widget")
+    if widget:
+        x = widget.winfo_x() + event.x - drag_data["x"]
+        y = widget.winfo_y() + event.y - drag_data["y"]
+        widget.place(x=x, y=y)
+
+
+def drag_stop(event):
+    widget = drag_data.get("widget")
+    if widget:
+        if root.winfo_containing(event.x_root, event.y_root) == drop_area:
+            handle_task(widget["text"], widget)
+        widget.place_forget()
+        widget.grid(row=widget.orig_row, column=widget.orig_col, sticky="nsew")
+        drag_data["widget"] = None
+
+
 # Basic button style for a cooler look
 BUTTON_STYLE = {
     "bg": "#444",
@@ -70,6 +103,52 @@ def load_tasks_from_file(filename):
 
 # Load tasks from tasks.json
 load_tasks_from_file('tasks.json')
+
+
+def generate_extra_tasks(count=5000):
+    """Generate additional tasks to reach the desired count."""
+    verbs = [
+        "閱讀",
+        "撰寫",
+        "整理",
+        "研究",
+        "清潔",
+        "烹飪",
+        "運動",
+        "學習",
+        "觀察",
+        "修理",
+    ]
+    nouns = [
+        "文件",
+        "書籍",
+        "報告",
+        "設備",
+        "房間",
+        "電腦",
+        "廚房",
+        "浴室",
+        "客廳",
+        "花園",
+    ]
+    existing = sum(len(v) for v in tasks.values())
+    extras_needed = max(0, count - existing)
+    tasks["extra"] = []
+    for i in range(extras_needed):
+        verb = verbs[i % len(verbs)]
+        noun = nouns[i % len(nouns)]
+        action = f"{verb}{noun}{i+1}"
+        tasks["extra"].append(action)
+        action_stories[action] = f"你{verb}{noun}。"
+        action_energy[action] = (i % 7) - 3
+        action_hunger[action] = (i % 5) - 2
+        action_sleep[action] = (i % 5) - 2
+        action_mood[action] = (i % 7) - 3
+        action_hygiene[action] = (i % 5) - 2
+        action_social[action] = (i % 5) - 2
+
+
+generate_extra_tasks(5000)
 
 
 # Function to display current status
@@ -190,6 +269,9 @@ def update_tasks():
             column=idx % num_columns,
             sticky="nsew",
         )
+        btn.bind("<ButtonPress-1>", drag_start)
+        btn.bind("<B1-Motion>", drag_motion)
+        btn.bind("<ButtonRelease-1>", drag_stop)
 
     leave_btn = tk.Button(
         scrollable_frame,
@@ -420,6 +502,9 @@ search_button = tk.Button(
 )
 search_button.pack(side=tk.LEFT)
 search_entry.bind("<Return>", search_tasks)
+
+drop_area = tk.Label(root, text="拖到此處執行", bg="#333", fg="white", height=2)
+drop_area.pack(fill=tk.X, pady=(0, 10))
 
 menubar = tk.Menu(root)
 network_menu = tk.Menu(menubar, tearoff=0)
