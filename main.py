@@ -2,7 +2,66 @@ import json
 import tkinter as tk
 from tkinter import simpledialog, messagebox
 from difflib import get_close_matches
-import network
+import socket
+import threading
+
+
+def start_server(host='0.0.0.0', port=5000):
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    server.bind((host, port))
+    server.listen()
+    clients = []
+
+    def broadcast(msg, exclude=None):
+        for client in clients:
+            if client is not exclude:
+                try:
+                    client.sendall(msg)
+                except OSError:
+                    pass
+
+    def handle_client(conn, addr):
+        with conn:
+            clients.append(conn)
+            try:
+                while True:
+                    data = conn.recv(1024)
+                    if not data:
+                        break
+                    broadcast(data, exclude=conn)
+            finally:
+                clients.remove(conn)
+
+    def _accept_loop():
+        while True:
+            conn, addr = server.accept()
+            threading.Thread(
+                target=handle_client,
+                args=(conn, addr),
+                daemon=True,
+            ).start()
+
+    threading.Thread(target=_accept_loop, daemon=True).start()
+
+    return server
+
+
+def connect(host='localhost', port=5000, on_message=None):
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client.connect((host, port))
+
+    def listen():
+        while True:
+            data = client.recv(1024)
+            if not data:
+                break
+            if on_message:
+                on_message(data.decode('utf-8'))
+
+    threading.Thread(target=listen, daemon=True).start()
+    return client
+
 
 # Initial person settings
 person = {
@@ -343,7 +402,7 @@ phone_log = None
 def host_game():
     global network_server
     if not network_server:
-        network_server = network.start_server()
+        network_server = start_server()
         messagebox.showinfo("網路", "已啟動主機，等待其他玩家連線")
 
 
@@ -351,7 +410,7 @@ def join_game():
     global network_client
     host = simpledialog.askstring("連線", "輸入主機位址", initialvalue="localhost")
     if host:
-        network_client = network.connect(host, on_message=receive_message)
+        network_client = connect(host, on_message=receive_message)
         messagebox.showinfo("網路", "已連線到主機")
 
 
