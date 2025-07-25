@@ -2,12 +2,17 @@ import json
 import tkinter as tk
 from tkinter import simpledialog, messagebox
 from difflib import get_close_matches
+import network
 
 # Initial person settings
 person = {
     'name': '',
     'energy': 100,
     'hunger': 0,
+    'sleep': 100,
+    'mood': 50,
+    'hygiene': 100,
+    'social': 50,
     'location': '',
     'tasks': []
 }
@@ -17,6 +22,10 @@ tasks = {}
 action_stories = {}
 action_energy = {}
 action_hunger = {}
+action_sleep = {}
+action_mood = {}
+action_hygiene = {}
+action_social = {}
 combo_stories = {
     ("起床", "刷牙", "吃早餐"): "你開始了一個充滿活力的一天。",
     ("跑步", "洗臉", "喝咖啡"): "你保持了健康的生活方式。",
@@ -34,10 +43,15 @@ BUTTON_STYLE = {
 # Function to load tasks and stories from a file
 def load_tasks_from_file(filename):
     global tasks, action_stories, action_energy, action_hunger
+    global action_sleep, action_mood, action_hygiene, action_social
     tasks = {}
     action_stories = {}
     action_energy = {}
     action_hunger = {}
+    action_sleep = {}
+    action_mood = {}
+    action_hygiene = {}
+    action_social = {}
     with open(filename, 'r', encoding='utf-8') as file:
         data = json.load(file)
 
@@ -48,6 +62,10 @@ def load_tasks_from_file(filename):
             action_stories[action] = info.get('story', '')
             action_energy[action] = info.get('energy', 0)
             action_hunger[action] = info.get('hunger', 0)
+            action_sleep[action] = info.get('sleep', 0)
+            action_mood[action] = info.get('mood', 0)
+            action_hygiene[action] = info.get('hygiene', 0)
+            action_social[action] = info.get('social', 0)
 
 
 # Load tasks from tasks.json
@@ -57,8 +75,12 @@ load_tasks_from_file('tasks.json')
 # Function to display current status
 def show_status():
     status_text = (
-        f"目前狀態: 名字: {person['name']}, 能量: {person['energy']}, "
-        f"飢餓: {person['hunger']}, 位置: {person['location']}"
+        f"名字: {person['name']}\n"
+        f"能量: {person['energy']}  飢餓: {person['hunger']}  "
+        f"睡眠: {person['sleep']}\n"
+        f"心情: {person['mood']}  衛生: {person['hygiene']}  "
+        f"社交: {person['social']}\n"
+        f"位置: {person['location']}"
     )
     status_label.config(text=status_text)
 
@@ -66,15 +88,31 @@ def show_status():
         messagebox.showinfo("提醒", "你感到疲倦，需要休息。")
     if person['hunger'] > 80:
         messagebox.showinfo("提醒", "你非常餓，該去吃點東西了。")
+    if person['sleep'] < 20:
+        messagebox.showinfo("提醒", "你非常困倦，需要睡眠。")
+    if person['hygiene'] < 20:
+        messagebox.showinfo("提醒", "你需要洗澡了。")
+    if person['mood'] < 20:
+        messagebox.showinfo("提醒", "你的心情很差，做些讓自己開心的事吧。")
+    if person['social'] < 20:
+        messagebox.showinfo("提醒", "你感到孤單，與他人互動一下。")
 
 
 # Function to handle tasks
 
-def handle_task(task):
+def handle_task(task, button=None):
+    if task == "打電話":
+        open_phone()
+        return
+
     if task in tasks[person['location']]:
         story = action_stories.get(task, "你完成了這個動作。")
         energy_change = action_energy.get(task, 0)
         hunger_change = action_hunger.get(task, 0)
+        sleep_change = action_sleep.get(task, 0)
+        mood_change = action_mood.get(task, 0)
+        hygiene_change = action_hygiene.get(task, 0)
+        social_change = action_social.get(task, 0)
 
         intensity = simpledialog.askinteger(
             "強度",
@@ -84,16 +122,30 @@ def handle_task(task):
         )
         if intensity is None:
             intensity = 1
+        if button is not None:
+            orig = button.cget("bg")
+            button.config(bg="#888")
+            root.after(200, lambda: button.config(bg=orig))
         energy_change *= intensity
         hunger_change *= intensity
+        sleep_change *= intensity
+        mood_change *= intensity
+        hygiene_change *= intensity
+        social_change *= intensity
 
         person['energy'] += energy_change
         person['hunger'] += hunger_change
+        person['sleep'] += sleep_change
+        person['mood'] += mood_change
+        person['hygiene'] += hygiene_change
+        person['social'] += social_change
         messagebox.showinfo(
             "結果",
             (
                 f"你選擇了{task}: {story}\n強度: {intensity}\n"
-                f"能量變化: {energy_change}, 飢餓變化: {hunger_change}"
+                f"能量變化: {energy_change}, 飢餓變化: {hunger_change}\n"
+                f"睡眠變化: {sleep_change} 心情變化: {mood_change}\n"
+                f"衛生變化: {hygiene_change} 社交變化: {social_change}"
             ),
         )
 
@@ -130,9 +182,9 @@ def update_tasks():
         btn = tk.Button(
             scrollable_frame,
             text=task,
-            command=lambda t=task: handle_task(t),
             **BUTTON_STYLE,
         )
+        btn.configure(command=lambda t=task, b=btn: handle_task(t, b))
         btn.grid(
             row=idx // num_columns,
             column=idx % num_columns,
@@ -201,6 +253,54 @@ def leave_room():
     show_status()
 
 
+network_server = None
+network_client = None
+phone_log = None
+
+
+def host_game():
+    global network_server
+    if not network_server:
+        network_server = network.start_server()
+        messagebox.showinfo("網路", "已啟動主機，等待其他玩家連線")
+
+
+def join_game():
+    global network_client
+    host = simpledialog.askstring("連線", "輸入主機位址", initialvalue="localhost")
+    if host:
+        network_client = network.connect(host, on_message=receive_message)
+        messagebox.showinfo("網路", "已連線到主機")
+
+
+def receive_message(msg):
+    if phone_log:
+        phone_log.configure(state="normal")
+        phone_log.insert(tk.END, f"\n{msg}")
+        phone_log.configure(state="disabled")
+
+
+def open_phone():
+    global phone_log
+    phone = tk.Toplevel(root)
+    phone.title("手機")
+    phone.geometry("300x400")
+    phone_log = tk.Text(phone, state="disabled")
+    phone_log.pack(expand=True, fill=tk.BOTH)
+    entry = tk.Entry(phone)
+    entry.pack(fill=tk.X)
+
+    def send():
+        if network_client:
+            msg = entry.get()
+            if msg:
+                network_client.sendall(msg.encode("utf-8"))
+                entry.delete(0, tk.END)
+
+    send_btn = tk.Button(phone, text="發送", command=send)
+    send_btn.pack()
+
+
 # Function to start the simulation
 def start_simulation():
     person['name'] = simpledialog.askstring("名字", "你的名字是?")
@@ -244,6 +344,17 @@ def search_tasks(event=None):
                 btn.pack(fill=tk.X, padx=10, pady=2)
         else:
             messagebox.showinfo("搜索結果", "未找到相近的選項。")
+
+
+def decay_stats():
+    person['energy'] -= 1
+    person['hunger'] += 1
+    person['sleep'] -= 1
+    person['mood'] -= 1
+    person['hygiene'] -= 0.5
+    person['social'] -= 0.5
+    show_status()
+    root.after(10000, decay_stats)
 
 
 # Initialize the main window
@@ -310,6 +421,14 @@ search_button = tk.Button(
 search_button.pack(side=tk.LEFT)
 search_entry.bind("<Return>", search_tasks)
 
+menubar = tk.Menu(root)
+network_menu = tk.Menu(menubar, tearoff=0)
+network_menu.add_command(label="主機", command=host_game)
+network_menu.add_command(label="連接", command=join_game)
+menubar.add_cascade(label="網路", menu=network_menu)
+root.config(menu=menubar)
+
 start_simulation()
+decay_stats()
 
 root.mainloop()
