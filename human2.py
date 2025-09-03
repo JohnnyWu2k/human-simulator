@@ -1,20 +1,29 @@
 import tkinter as tk
-from tkinter import simpledialog, messagebox
+from tkinter import messagebox, simpledialog
 from difflib import get_close_matches
+
+import json
+import os
+import random
+
+from events import random_events
 
 # Initial person settings
 person = {
     'name': '',
     'energy': 100,
     'hunger': 0,
+    'mood': 0,
+    'money': 0,
     'location': '',
-    'tasks': []
+    'tasks': [],
 }
 
 # Define the tasks available in different locations
 tasks = {}
 action_stories = {}
 action_energy = {}
+
 
 # Function to load tasks and stories from a file
 def load_tasks_from_file(filename):
@@ -33,35 +42,59 @@ def load_tasks_from_file(filename):
                 action_energy[action.strip()] = int(energy.strip())
             tasks[location.strip()] = task_list
 
+
 # Load tasks from tasks.txt
 load_tasks_from_file('tasks.txt')
 
+
 # Function to display current status
 def show_status():
-    status_text = f"目前狀態: 名字: {person['name']}, 能量: {person['energy']}, 飢餓: {person['hunger']}, 位置: {person['location']}"
+    status_text = (
+        f"目前狀態: 名字: {person['name']}, 能量: {person['energy']}, "
+        f"飢餓: {person['hunger']}, 心情: {person['mood']}, "
+        f"金錢: {person['money']}, 位置: {person['location']}"
+    )
     status_label.config(text=status_text)
 
+
 # Function to handle tasks
+
 def handle_task(task):
     if task in tasks[person['location']]:
         story = action_stories.get(task, "你完成了這個動作。")
         energy_change = action_energy.get(task, 0)
         person['energy'] += energy_change
-        messagebox.showinfo("結果", f"你選擇了{task}: {story}\n能量變化: {energy_change}")
-        
+        message = f"你選擇了{task}: {story}\n能量變化: {energy_change}"
+        messagebox.showinfo("結果", message)
+
         person['tasks'].append(task)
         check_story()
 
     else:
         messagebox.showinfo("無效動作", "這個動作在當前位置不可用。")
-    
+
     update_tasks()
     show_status()
+    trigger_random_event()
+
 
 # Function to check if a specific story is triggered
 def check_story():
     # Add story checking logic here if needed
     pass
+
+
+# Function to trigger random events
+def trigger_random_event():
+    if random.random() < 0.2:  # 20% chance
+        event = random.choice(random_events)
+        person['energy'] += event['energy']
+        person['hunger'] += event['hunger']
+        person['mood'] += event['mood']
+        person['money'] += event['money']
+        messagebox.showinfo("隨機事件", event['description'])
+        show_status()
+
 
 # Function to update the task buttons based on the current location
 def update_tasks():
@@ -70,14 +103,21 @@ def update_tasks():
 
     num_tasks = len(tasks[person['location']])
     num_columns = 3  # Define number of columns
-    num_rows = (num_tasks + num_columns - 1) // num_columns  # Calculate number of rows needed
+    num_rows = (num_tasks + num_columns - 1) // num_columns
+    # Calculate number of rows needed
 
     for idx, task in enumerate(tasks[person['location']]):
-        btn = tk.Button(scrollable_frame, text=task, command=lambda t=task: handle_task(t))
-        btn.grid(row=idx // num_columns, column=idx % num_columns, sticky="nsew")
+        btn = tk.Button(
+            scrollable_frame, text=task, command=lambda t=task: handle_task(t)
+        )
+        btn.grid(
+            row=idx // num_columns, column=idx % num_columns, sticky="nsew"
+        )
 
     leave_btn = tk.Button(scrollable_frame, text="離開房間", command=leave_room)
-    leave_btn.grid(row=num_rows, column=0, columnspan=num_columns, sticky="nsew")
+    leave_btn.grid(
+        row=num_rows, column=0, columnspan=num_columns, sticky="nsew"
+    )
 
     # Make the buttons fill the frame
     for row in range(num_rows + 1):
@@ -85,18 +125,24 @@ def update_tasks():
     for col in range(num_columns):
         scrollable_frame.grid_columnconfigure(col, weight=1)
 
+
 # Function to update room buttons based on tasks
 def update_rooms():
     for widget in scrollable_frame.winfo_children():
         widget.destroy()
-    
+
     num_rooms = len(tasks.keys())
     num_columns = 3  # Define number of columns
-    num_rows = (num_rooms + num_columns - 1) // num_columns  # Calculate number of rows needed
+    num_rows = (num_rooms + num_columns - 1) // num_columns
+    # Calculate number of rows needed
 
     for idx, room in enumerate(tasks.keys()):
-        btn = tk.Button(scrollable_frame, text=room, command=lambda r=room: select_room(r))
-        btn.grid(row=idx // num_columns, column=idx % num_columns, sticky="nsew")
+        btn = tk.Button(
+            scrollable_frame, text=room, command=lambda r=room: select_room(r)
+        )
+        btn.grid(
+            row=idx // num_columns, column=idx % num_columns, sticky="nsew"
+        )
 
     # Make the buttons fill the frame
     for row in range(num_rows):
@@ -104,15 +150,78 @@ def update_rooms():
     for col in range(num_columns):
         scrollable_frame.grid_columnconfigure(col, weight=1)
 
+
 def select_room(room):
     person['location'] = room
     update_tasks()
     show_status()
 
+
 def leave_room():
     person['location'] = ''
     update_rooms()
     show_status()
+
+
+def ai_decide_action(action_text):
+    api_key = os.getenv("GOOGLE_API_KEY")
+    if not api_key:
+        return {
+            "description": f"假裝執行: {action_text}",
+            "energy": random.randint(-5, 5),
+            "hunger": random.randint(-5, 5),
+            "mood": random.randint(-5, 5),
+            "money": random.randint(-20, 20),
+        }
+    try:
+        import requests
+
+        url = (
+            "https://generativelanguage.googleapis.com/v1beta/models/"
+            "gemini-pro:generateContent"
+        )
+        prompt = (
+            f"玩家狀態 energy={person['energy']}, hunger={person['hunger']}, "
+            f"mood={person['mood']}, money={person['money']}\n"
+            f"玩家想要: {action_text}\n"
+            "請以JSON回傳 description, energy, hunger, mood, money 的變化"
+        )
+        payload = {"contents": [{"parts": [{"text": prompt}]}]}
+        response = requests.post(
+            url, params={"key": api_key}, json=payload, timeout=30
+        )
+        text = response.json()["candidates"][0]["content"]["parts"][0]["text"]
+        return json.loads(text)
+    except Exception:
+        return {
+            "description": f"無法連線，假裝執行: {action_text}",
+            "energy": 0,
+            "hunger": 0,
+            "mood": 0,
+            "money": 0,
+        }
+
+
+def ai_action():
+    action_text = simpledialog.askstring("AI 動作", "你想做什麼?")
+    if not action_text:
+        return
+    result = ai_decide_action(action_text)
+    person['energy'] += result.get("energy", 0)
+    person['hunger'] += result.get("hunger", 0)
+    person['mood'] += result.get("mood", 0)
+    person['money'] += result.get("money", 0)
+    desc = result.get("description", "AI 沒有提供描述。")
+    message = (
+        f"{desc}\n能量變化: {result.get('energy', 0)} "
+        f"飢餓變化: {result.get('hunger', 0)} "
+        f"心情變化: {result.get('mood', 0)} "
+        f"金錢變化: {result.get('money', 0)}"
+    )
+    messagebox.showinfo("AI 結果", message)
+    show_status()
+    trigger_random_event()
+
 
 # Function to start the simulation
 def start_simulation():
@@ -124,11 +233,17 @@ def start_simulation():
     else:
         root.destroy()
 
+
 # Function to search for tasks
 def search_tasks(event=None):
     query = search_entry.get()
     if query:
-        close_matches = get_close_matches(query, [task for loc_tasks in tasks.values() for task in loc_tasks], n=5, cutoff=0.1)
+        close_matches = get_close_matches(
+            query,
+            [task for loc_tasks in tasks.values() for task in loc_tasks],
+            n=5,
+            cutoff=0.1,
+        )
         if close_matches:
             result = tk.Toplevel(root)
             result.title("搜索結果")
@@ -136,10 +251,15 @@ def search_tasks(event=None):
             result_label = tk.Label(result, text="選擇一個動作:")
             result_label.pack(pady=10)
             for match in close_matches:
-                btn = tk.Button(result, text=match, command=lambda m=match: [handle_task(m), result.destroy()])
+                btn = tk.Button(
+                    result,
+                    text=match,
+                    command=lambda m=match: [handle_task(m), result.destroy()],
+                )
                 btn.pack(fill=tk.X, padx=10, pady=2)
         else:
             messagebox.showinfo("搜索結果", "未找到相近的選項。")
+
 
 # Initialize the main window
 root = tk.Tk()
@@ -157,7 +277,9 @@ task_buttons_frame.pack(expand=True, fill=tk.BOTH, padx=10, pady=10)
 
 # Add a scrollbar for the task buttons frame
 canvas = tk.Canvas(task_buttons_frame)
-scrollbar = tk.Scrollbar(task_buttons_frame, orient="vertical", command=canvas.yview)
+scrollbar = tk.Scrollbar(
+    task_buttons_frame, orient="vertical", command=canvas.yview
+)
 scrollable_frame = tk.Frame(canvas)
 
 scrollable_frame.bind(
@@ -182,6 +304,9 @@ search_entry.pack(side=tk.LEFT, padx=5)
 search_button = tk.Button(search_frame, text="搜索", command=search_tasks)
 search_button.pack(side=tk.LEFT)
 search_entry.bind("<Return>", search_tasks)
+
+ai_button = tk.Button(search_frame, text="AI 動作", command=ai_action)
+ai_button.pack(side=tk.LEFT, padx=5)
 
 start_simulation()
 
