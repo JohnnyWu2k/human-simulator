@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settlement Simulator</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="page-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-row">
+          <div>
+            <p id="brand-eyebrow" class="eyebrow"></p>
+            <h1 id="app-title"></h1>
+          </div>
+          <div class="lang-switch">
+            <button id="lang-zh" class="lang-button" type="button">中文</button>
+            <button id="lang-en" class="lang-button" type="button">EN</button>
+          </div>
+        </div>
+        <p id="app-subtitle" class="lede"></p>
+      </div>
+
+      <section class="panel mission-panel">
+        <div class="section-head">
+          <h2 id="mission-title"></h2>
+          <p id="mission-subtitle"></p>
+        </div>
+        <div id="mission-cards" class="brief-list"></div>
+      </section>
+
+      <section class="panel">
+        <div class="section-head compact-head">
+          <h2 id="setup-title"></h2>
+          <p id="setup-subtitle"></p>
+        </div>
+        <label class="field">
+          <span id="preset-label"></span>
+          <select id="preset-select"></select>
+        </label>
+        <div class="button-row">
+          <button id="load-preset-btn" class="secondary" type="button"></button>
+          <button id="reset-btn" type="button"></button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-head compact-head">
+          <h2 id="parameters-title"></h2>
+          <p id="parameters-subtitle"></p>
+        </div>
+        <form id="config-form"></form>
+      </section>
+    </aside>
+
+    <main class="main-view">
+      <section class="hero panel">
+        <div class="hero-copy">
+          <p id="control-eyebrow" class="eyebrow"></p>
+          <div class="hero-topline">
+            <h2 id="settlement-title">Loading...</h2>
+            <span id="outcome-pill" class="outcome-pill">Ongoing</span>
+          </div>
+          <p id="status-text" class="status-text"></p>
+          <div id="judgement-panel" class="info-block"></div>
+          <div id="objective-banner" class="objective-banner"></div>
+        </div>
+
+        <div class="hero-controls">
+          <label class="field">
+            <span id="policy-label"></span>
+            <select id="policy-select"></select>
+          </label>
+          <div id="policy-detail" class="info-block"></div>
+          <label class="field">
+            <span id="run-turns-label"></span>
+            <input id="run-turns" type="number" min="1" max="100" value="8">
+          </label>
+          <label class="field">
+            <span id="schedule-label"></span>
+            <textarea id="schedule-input" rows="3"></textarea>
+            <small id="schedule-help"></small>
+          </label>
+          <div class="button-row">
+            <button id="step-btn" type="button"></button>
+            <button id="run-btn" class="secondary" type="button"></button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel operation-panel">
+        <div class="section-head">
+          <h2 id="operations-title"></h2>
+          <p id="operations-subtitle"></p>
+        </div>
+        <p id="operations-help" class="metric-hint"></p>
+        <div id="operation-grid" class="operation-grid"></div>
+        <p id="operation-selection-note" class="selection-note"></p>
+      </section>
+
+      <section class="top-grid">
+        <article class="panel explainer-panel">
+          <div class="section-head">
+            <h2 id="guide-title"></h2>
+            <p id="guide-subtitle"></p>
+          </div>
+          <div id="guide-cards" class="guide-grid"></div>
+        </article>
+
+        <article class="panel adviser-panel">
+          <div class="section-head">
+            <h2 id="adviser-title"></h2>
+            <p id="adviser-subtitle"></p>
+          </div>
+          <div id="adviser-notes" class="adviser-notes"></div>
+        </article>
+      </section>
+
+      <section id="summary-cards" class="summary-grid"></section>
+
+      <section class="panel chart-panel">
+        <div class="section-head">
+          <h2 id="timeline-title"></h2>
+          <p id="timeline-subtitle"></p>
+        </div>
+        <canvas id="history-chart" width="900" height="340"></canvas>
+      </section>
+
+      <section class="detail-grid">
+        <article class="panel">
+          <div class="section-head">
+            <h2 id="turn-title"></h2>
+            <p id="turn-subtitle"></p>
+          </div>
+          <div id="last-report" class="report"></div>
+        </article>
+
+        <article class="panel">
+          <div class="section-head">
+            <h2 id="event-title"></h2>
+            <p id="event-subtitle"></p>
+          </div>
+          <div id="event-log" class="event-log"></div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>
